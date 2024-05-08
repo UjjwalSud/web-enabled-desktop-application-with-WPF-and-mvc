@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,38 +25,33 @@ namespace WpfAppDotNetFrameWork
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static WebView2 SystemWebView = new WebView2();
         public MainWindow()
         {
             InitializeComponent();
             System.Threading.Thread.Sleep(5000);
-            WebBrowser webBrowser = new WebBrowser();
-            webBrowser.Loaded += (sender, e) => SuppressScriptErrors(webBrowser, true);
-            webBrowser.ObjectForScripting = new ScriptingHelper();
-            webBrowser.Navigate(new Uri("https://localhost:7144/"));
-            this.Content = webBrowser;
+            System.Threading.Thread.Sleep(5000);
+            SystemWebView.WebMessageReceived += SystemWebView_WebMessageReceived;
+            SystemWebView.Source = new Uri("https://localhost:7144/");
+            Grid.SetRow(SystemWebView, 0);
+
+            browserWrapper.Children.Add(SystemWebView);
         }
 
-        public void SuppressScriptErrors(WebBrowser webBrowser, bool suppress)
+        private void SystemWebView_WebMessageReceived(object sender = null, CoreWebView2WebMessageReceivedEventArgs e = null)
         {
-            FieldInfo fi = typeof(WebBrowser).GetField("_axIWebBrowser2", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (fi != null)
-            {
-                object browser = fi.GetValue(webBrowser);
-                if (browser != null)
-                {
-                    browser.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, browser, new object[] { suppress });
-                }
-            }
+            string commandString = e.TryGetWebMessageAsString();
+
+            UICommander commander = JsonConvert.DeserializeObject<UICommander>(commandString);
+
+            MessageBox.Show(string.Format("command is '{0}' and data is '{1}'", commander.command, commander.meta), "Alert", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }
 
-[ComVisible(true)]
-public class ScriptingHelper
+public class UICommander
 {
-    public void Notify(string message)
-    {
-        MessageBox.Show("Message from web page: " + message);
-    }
+    public string command { get; set; }
+    public string meta { get; set; }
 }
 
