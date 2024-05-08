@@ -1,11 +1,14 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     <p>
-        <button onclick="window.clientAdapator.processUICommand('I am Command','I am Data')">Send Data</button>
+        <button onclick="window.clientAdapator.processUICommand('I am Command','I am Data')">Send Data To .net Core</button>
+
+        <button onclick="window.external.Notify('Hello from the web!');">Send Data To .NetFramework</button>
     </p>
 </div>
